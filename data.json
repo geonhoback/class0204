@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "type": "task",
+    "title": "역사",
+    "date": "2026-09-24",
+    "imageData": null
+  },
+  {
+    "id": 2,
+    "type": "exam",
+    "title": "수학",
+    "date": "2026-09-30",
+    "imageData": null
+  }
+]
