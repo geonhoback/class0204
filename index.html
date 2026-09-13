@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>우리 반 학사 일정 & 프린트 캘린더 (서버 연동 최적화)</title>
+  <title>우리 반 학사 일정 & 프린트 캘린더 (실시간 서버 연동)</title>
   <style>
     :root {
       --exam-color: #e74c3c;
@@ -171,7 +171,7 @@
       width: 100%;
     }
 
-    /* 칸 크기 고정 스타일 (76px 유지) */
+    /* 칸 크기 완벽 고정 (76px 유지) */
     .day-cell {
       height: 76px;
       max-height: 76px;
@@ -212,6 +212,7 @@
     }
     .event-container::-webkit-scrollbar { display: none; }
 
+    /* 텍스트 뱃지 (카메라 이모티콘 없이 깔끔함 유지) */
     .event-badge {
       font-size: 0.58rem;
       padding: 1px 3px;
@@ -247,7 +248,7 @@
     .legend-item { display: flex; align-items: center; gap: 4px; }
     .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
 
-    /* 모달 */
+    /* 상세 모달 */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -294,14 +295,16 @@
       align-items: center;
     }
 
+    /* 모바일 반응형 이미지 썸네일 */
     .print-img-thumb {
-      max-width: 100%;
-      max-height: 180px;
+      width: 100%;
+      max-height: 200px;
       border-radius: 6px;
-      margin-top: 6px;
+      margin-top: 8px;
       cursor: zoom-in;
       display: block;
-      object-fit: cover;
+      object-fit: contain;
+      background: #eee;
     }
 
     .delete-btn {
@@ -314,12 +317,13 @@
     }
     .delete-btn:hover { color: var(--exam-color); }
 
+    /* 라이트박스 */
     .lightbox-overlay {
       display: none;
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.85);
+      background: rgba(0, 0, 0, 0.9);
       justify-content: center;
       align-items: center;
       z-index: 200;
@@ -340,7 +344,7 @@
 
   <h1>🗓️ 2학년 일정 & 프린트 캘린더</h1>
 
-  <!-- 일정 등록 폼 -->
+  <!-- 관리자 전용 일정 등록 폼 -->
   <div class="form-box" id="adminFormBox">
     <div class="form-row">
       <select id="typeSelect">
@@ -383,7 +387,6 @@
   </div>
 </div>
 
-<!-- 모달 -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal-content" onclick="event.stopPropagation()">
     <h3 id="modalDateTitle">상세 일정</h3>
@@ -392,7 +395,6 @@
   </div>
 </div>
 
-<!-- 관리자 인증 모달 -->
 <div class="modal-overlay" id="authModalOverlay" onclick="closeAuthModal(event)">
   <div class="modal-content" onclick="event.stopPropagation()">
     <h3>🔒 관리자 로그인</h3>
@@ -407,28 +409,26 @@
   </div>
 </div>
 
-<!-- 라이트박스 -->
 <div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox()">
   <img id="lightboxImg" class="lightbox-img" src="" alt="유인물 확대">
 </div>
 
 <script>
   // ========================================================
-  // [설정 영역] 비밀번호 및 JSONBin.io 키 값
+  // [완료] 전달해 주신 실제 API 키 값들이 모두 적용되었습니다!
   // ========================================================
   const ADMIN_PASSWORD = "class2026"; 
-  const JSONBIN_BIN_ID = "6aa647f0ac6210605ac70149".trim();
-  const JSONBIN_API_KEY = "$2a$10$xrkguaqza138TZqYTrcKJepPpeA75Th/u/DrugaWVhnBMctq4OQU6 ".trim();
+  const JSONBIN_BIN_ID = "6aa647f0ac6210605ac70149".trim(); 
+  const JSONBIN_API_KEY = "$2a$10$xrkguaqza138TZqYTrcKJepPpeA75Th/u/DrugaWVhnBMctq4OQU6".trim(); 
+  const IMGBB_API_KEY = "9911adee55b2aedaa911ca508dc35711".trim(); 
 
   let schedules = [];
   let currentUserRole = sessionStorage.getItem('user_role') || 'student';
   let currentDate = new Date();
   let selectedDateForModal = null;
 
-  // 1. 서버 데이터 불러오기
+  // 1. 서버 데이터 불러오기 (GET)
   async function loadDataFromServer() {
-    if (!JSONBIN_BIN_ID || JSONBIN_BIN_ID.includes("여기에")) return;
-
     try {
       const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest?t=${Date.now()}`, {
         headers: { 'X-Master-Key': JSONBIN_API_KEY }
@@ -444,13 +444,8 @@
     }
   }
 
-  // 2. 서버 데이터 저장하기 (에러 분석 강화)
+  // 2. 서버로 JSON 일정 데이터 저장 (URL만 저장되므로 초경량 유지)
   async function saveDataToServer(newSchedules) {
-    if (!JSONBIN_BIN_ID || JSONBIN_BIN_ID.includes("여기에")) {
-      alert("코드 상단에 JSONBin.io의 Bin ID와 Master Key를 입력해 주세요!");
-      return false;
-    }
-
     try {
       const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
         method: 'PUT',
@@ -462,16 +457,8 @@
       });
 
       if (!res.ok) {
-        let errorMsg = `HTTP 에러 ${res.status}`;
-        try {
-          const errJson = await res.json();
-          if (errJson.message) errorMsg = errJson.message;
-        } catch (parseErr) {}
-        
-        if (res.status === 413) {
-          errorMsg = "사진 파일 용량이 너무 큽니다! 서버 저장 용량을 초과했습니다.";
-        }
-        throw new Error(errorMsg);
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.message || `HTTP ${res.status}`);
       }
 
       schedules = newSchedules;
@@ -481,6 +468,123 @@
       console.error("서버 저장 오류:", e);
       alert(`[서버 저장 실패 원인]\n${e.message}`);
       return false;
+    }
+  }
+
+  // 3. 모바일 최적화 Canvas 리사이징 (너비 700px, JPEG 60%)
+  function optimizeImage(file, callback) {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = function (event) {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = function () {
+        const maxWidth = 700; // 모바일 화면에서 또렷하게 읽히는 최적 폭
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // 화질 60% 압축으로 가독성을 확보하면서 용량은 수십 KB로 최소화
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+        const base64Clean = dataUrl.split(',')[1];
+        callback(base64Clean);
+      };
+    };
+  }
+
+  // 4. ImgBB 무료 호스팅으로 이미지 업로드 및 경량 URL 획득
+  async function uploadToImgBB(base64Image) {
+    const formData = new FormData();
+    formData.append("image", base64Image);
+
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+      method: "POST",
+      body: formData
+    });
+
+    if (!res.ok) throw new Error("ImgBB 이미지 호스팅 업로드 실패");
+
+    const result = await res.json();
+    return result.data.display_url; // 사진의 전용 인터넷 링크(URL) 반환
+  }
+
+  // 5. 새 일정 등록 함수
+  async function addSchedule() {
+    if (currentUserRole !== 'admin') return alert('일정 등록 권한이 없습니다.');
+
+    const type = document.getElementById('typeSelect').value;
+    const title = document.getElementById('titleInput').value.trim();
+    const date = document.getElementById('dateInput').value;
+    const imageFileInput = document.getElementById('imageInput');
+    const imageFile = imageFileInput.files[0];
+    const submitBtn = document.getElementById('submitBtn');
+
+    if (!title || !date) return alert('과목명과 날짜를 입력해 주세요!');
+
+    submitBtn.disabled = true;
+    submitBtn.innerText = "사진 최적화 및 저장 중...";
+
+    try {
+      let imageUrl = null;
+
+      if (imageFile) {
+        // A. 모바일 캔버스 최적화 압축
+        const compressedBase64 = await new Promise((resolve) => optimizeImage(imageFile, resolve));
+        // B. ImgBB 클라우드에 업로드하여 짧은 URL 발급
+        imageUrl = await uploadToImgBB(compressedBase64);
+      }
+
+      // C. 가벼운 URL만 포함한 일정 객체 생성 (100장 이상 등록 가능)
+      const newItem = {
+        id: Date.now(),
+        type: type,
+        title: title,
+        date: date,
+        imageData: imageUrl
+      };
+
+      const updated = [...schedules, newItem];
+      const success = await saveDataToServer(updated);
+
+      if (success) {
+        document.getElementById('titleInput').value = '';
+        document.getElementById('dateInput').value = '';
+        document.getElementById('imageInput').value = '';
+        alert('공용 서버에 성공적으로 등록되었습니다! 100장 이상의 사진도 여유 있게 저장됩니다.');
+      }
+    } catch (err) {
+      alert(`등록 실패: ${err.message}`);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerText = "공용 서버에 등록하기";
+    }
+  }
+
+  // 6. 일정 삭제
+  async function deleteSchedule(id) {
+    if (currentUserRole !== 'admin') return alert('삭제 권한이 없습니다.');
+    if (!confirm('정말 삭제하시겠습니까?')) return;
+
+    const updated = schedules.filter(s => s.id !== id);
+    const success = await saveDataToServer(updated);
+
+    if (success) {
+      alert('삭제 완료되었습니다.');
+      if (selectedDateForModal) {
+        const remaining = updated.filter(s => s.date === selectedDateForModal);
+        if (remaining.length === 0) closeModal();
+        else openModal(selectedDateForModal);
+      }
     }
   }
 
@@ -593,109 +697,6 @@
   function prevMonth() { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); }
   function nextMonth() { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); }
 
-  // [핵심 보강] 초고압축 리사이징 (서버 용량 제한 돌파)
-  function resizeImage(file, maxWidth, callback) {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = function (event) {
-      const img = new Image();
-      img.src = event.target.result;
-      img.onload = function () {
-        const elem = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-
-        // 해상도를 최대 400px 수준으로 줄여 전송 용량 최소화
-        if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
-        }
-
-        elem.width = width;
-        elem.height = height;
-        const ctx = elem.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // JPEG 45% 화질로 강력 압축 (글씨 식별 가능 + 초경량 용량 보장)
-        callback(elem.toDataURL('image/jpeg', 0.45));
-      };
-    };
-  }
-
-  // 일정 등록 함수
-  async function addSchedule() {
-    if (currentUserRole !== 'admin') {
-      alert('일정 등록 권한이 없습니다.');
-      return;
-    }
-
-    const type = document.getElementById('typeSelect').value;
-    const title = document.getElementById('titleInput').value.trim();
-    const date = document.getElementById('dateInput').value;
-    const imageFileInput = document.getElementById('imageInput');
-    const imageFile = imageFileInput.files[0];
-    const submitBtn = document.getElementById('submitBtn');
-
-    if (!title || !date) {
-      alert('과목명과 날짜를 입력해 주세요!');
-      return;
-    }
-
-    submitBtn.disabled = true;
-    submitBtn.innerText = "서버 저장 중...";
-
-    const handleSave = async (imageData) => {
-      const newItem = {
-        id: Date.now(),
-        type: type,
-        title: title,
-        date: date,
-        imageData: imageData
-      };
-
-      const updated = [...schedules, newItem];
-      const success = await saveDataToServer(updated);
-
-      if (success) {
-        document.getElementById('titleInput').value = '';
-        document.getElementById('dateInput').value = '';
-        document.getElementById('imageInput').value = '';
-        alert('공용 서버에 성공적으로 등록되었습니다!');
-      }
-      submitBtn.disabled = false;
-      submitBtn.innerText = "공용 서버에 등록하기";
-    };
-
-    if (imageFile) {
-      // maxWidth를 400으로 줄여 서버 전송 성공률 극대화
-      resizeImage(imageFile, 400, (compressedBase64) => handleSave(compressedBase64));
-    } else {
-      await handleSave(null);
-    }
-  }
-
-  // 일정 삭제 함수
-  async function deleteSchedule(id) {
-    if (currentUserRole !== 'admin') {
-      alert('삭제 권한이 없습니다.');
-      return;
-    }
-
-    if (!confirm('정말 삭제하시겠습니까?')) return;
-
-    const updated = schedules.filter(s => s.id !== id);
-    const success = await saveDataToServer(updated);
-
-    if (success) {
-      alert('삭제 완료되었습니다.');
-      if (selectedDateForModal) {
-        const remaining = updated.filter(s => s.date === selectedDateForModal);
-        if (remaining.length === 0) closeModal();
-        else openModal(selectedDateForModal);
-      }
-    }
-  }
-
   // 상세 모달
   function openModal(dateString) {
     selectedDateForModal = dateString;
@@ -710,7 +711,10 @@
       const li = document.createElement('li');
       li.className = 'modal-item';
       const label = evt.type === 'exam' ? '[지필고사]' : '[수행평가]';
-      const photoHtml = evt.imageData ? `<img src="${evt.imageData}" class="print-img-thumb" onclick="openLightbox('${evt.imageData}')">` : '';
+      
+      const photoHtml = evt.imageData 
+        ? `<img src="${evt.imageData}" class="print-img-thumb" loading="lazy" alt="유인물" onclick="openLightbox('${evt.imageData}')">` 
+        : '';
       const delBtn = (currentUserRole === 'admin') ? `<button class="delete-btn" onclick="deleteSchedule(${evt.id})">삭제</button>` : '';
 
       li.innerHTML = `
@@ -742,6 +746,7 @@
     document.getElementById('lightboxImg').src = '';
   }
 
+  // 초기 렌더링 및 서버 데이터 호출
   updateAuthUI();
   renderCalendar();
   loadDataFromServer();
