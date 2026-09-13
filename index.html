@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>우리 반 학사 일정 & 프린트 캘린더</title>
+  <title>2학년 4반 일정표</title>
   <style>
     :root {
       --primary-blue: #1971c2;
@@ -50,7 +50,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 16px;
+      padding: 10px 16px;
       background: #ffffff;
       border-bottom: 1px solid var(--border-color);
     }
@@ -77,6 +77,16 @@
       cursor: pointer;
     }
 
+    /* 최상단 메인 헤더 타이틀 */
+    .app-main-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      text-align: center;
+      padding: 16px 16px 8px;
+      color: #111;
+      letter-spacing: -0.5px;
+    }
+
     .form-box {
       display: none;
       background: #f8f9fa;
@@ -95,7 +105,7 @@
       border-radius: 6px;
       outline: none;
     }
-    input[type="text"], input[type="password"], input[type="time"] { flex: 1; }
+    input[type="text"], input[type="password"] { flex: 1; }
     textarea { width: 100%; height: 50px; resize: none; }
 
     button.btn-primary {
@@ -113,7 +123,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 14px 16px 8px;
+      padding: 10px 16px 8px;
     }
     .calendar-nav h2 {
       font-size: 1.15rem;
@@ -151,7 +161,6 @@
       gap: 3px;
     }
 
-    /* 과목명이 들어가는 고정 높이 칸 (74px) */
     .day-cell {
       height: 74px;
       max-height: 74px;
@@ -200,7 +209,6 @@
     .day-cell.holiday .day-number { color: var(--sunday-color); }
     .day-cell.saturday .day-number { color: var(--primary-blue); }
 
-    /* 오늘 날짜 원형 강조 */
     .day-cell.today .day-number-wrap {
       background-color: var(--today-bg);
     }
@@ -219,7 +227,6 @@
       max-width: 32px;
     }
 
-    /* 달력 칸 내부 과목명 배지 목록 컨테이너 */
     .event-badge-container {
       width: 100%;
       display: flex;
@@ -232,7 +239,6 @@
     }
     .event-badge-container::-webkit-scrollbar { display: none; }
 
-    /* 과목명 배지 */
     .event-badge {
       font-size: 0.58rem;
       font-weight: 700;
@@ -266,7 +272,6 @@
       text-decoration: line-through;
     }
 
-    /* 하단 상세 카드 뷰 */
     .detail-section {
       padding: 18px 16px 30px;
       flex: 1;
@@ -420,11 +425,16 @@
 <body>
 
 <div class="app-container">
+  <!-- 상단 권한 바 -->
   <div class="top-bar">
     <span id="roleBadge" class="user-badge">학생 모드</span>
     <button id="authBtn" class="auth-btn" onclick="openAuthModal()">관리자 로그인</button>
   </div>
 
+  <!-- 요청하신 메인 타이틀 헤더 -->
+  <h1 class="app-main-title">2학년 4반 일정표</h1>
+
+  <!-- 관리자 일정 등록 폼 -->
   <div class="form-box" id="adminFormBox">
     <div class="form-row">
       <select id="typeSelect">
@@ -435,7 +445,16 @@
     </div>
     <div class="form-row">
       <input type="date" id="dateInput" style="flex:1;">
-      <input type="time" id="timeInput" value="22:00" style="width:110px;">
+      <select id="periodSelect" style="width:115px;">
+        <option value="1교시">1교시</option>
+        <option value="2교시">2교시</option>
+        <option value="3교시">3교시</option>
+        <option value="4교시">4교시</option>
+        <option value="5교시">5교시</option>
+        <option value="6교시">6교시</option>
+        <option value="7교시">7교시</option>
+        <option value="방과후">방과후</option>
+      </select>
     </div>
     <textarea id="descInput" placeholder="세부 내용 (예: 배구, 야구 등)"></textarea>
     <div style="font-size:0.75rem; color:#666;">
@@ -603,7 +622,7 @@
     const type = document.getElementById('typeSelect').value;
     const title = document.getElementById('titleInput').value.trim();
     const date = document.getElementById('dateInput').value;
-    const time = document.getElementById('timeInput').value;
+    const period = document.getElementById('periodSelect').value;
     const desc = document.getElementById('descInput').value.trim();
     const files = document.getElementById('imageInput').files;
     const submitBtn = document.getElementById('submitBtn');
@@ -629,7 +648,7 @@
         type: type,
         title: title,
         date: date,
-        time: time,
+        period: period,
         description: desc,
         images: imageUrls
       };
@@ -659,7 +678,6 @@
     if (ok) alert('삭제되었습니다.');
   }
 
-  // 상단 달력 그리드 (과목명 배지 렌더링)
   function renderCalendar() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -678,7 +696,6 @@
 
     if (!selectedDateString) selectedDateString = todayStr;
 
-    // 이전 달 날짜
     for (let i = firstDayIndex - 1; i >= 0; i--) {
       const d = prevMonthTotalDays - i;
       const cell = document.createElement('div');
@@ -691,7 +708,6 @@
       daysGrid.appendChild(cell);
     }
 
-    // 이번 달 날짜
     for (let day = 1; day <= totalDays; day++) {
       const dayCell = document.createElement('div');
       dayCell.className = 'day-cell';
@@ -708,7 +724,6 @@
       const holiday = HOLIDAYS[dateStr];
       if (holiday) dayCell.classList.add('holiday');
 
-      // 날짜 숫자 및 공휴일 표시
       let innerHtml = `
         <div class="day-header-wrap">
           <div class="day-number-wrap">
@@ -718,7 +733,6 @@
         </div>
       `;
 
-      // 과목명 텍스트 배지 컨테이너
       const dayEvents = schedules.filter(s => s.date === dateStr);
       innerHtml += `<div class="event-badge-container">`;
       dayEvents.forEach(evt => {
@@ -733,7 +747,6 @@
       daysGrid.appendChild(dayCell);
     }
 
-    // 다음 달 날짜 채우기
     const totalRendered = firstDayIndex + totalDays;
     const remaining = (7 - (totalRendered % 7)) % 7;
     for (let j = 1; j <= remaining; j++) {
@@ -764,7 +777,6 @@
     renderSelectedDateDetails();
   }
 
-  // 하단 상세 일정 뷰
   function renderSelectedDateDetails() {
     if (!selectedDateString) return;
 
@@ -802,7 +814,7 @@
         typeText += ' (마감)';
       }
 
-      const timeText = evt.time ? `🕒 ${evt.time}` : '🕒 시간 미지정';
+      const periodText = evt.period ? `🕒 ${evt.period}` : (evt.time ? `🕒 ${evt.time}` : '🕒 교시 미지정');
       const descHtml = evt.description ? `<div class="card-desc">${evt.description}</div>` : '';
 
       let imagesHtml = '';
@@ -826,7 +838,7 @@
         </div>
         <div class="card-title">${evt.title}</div>
         ${descHtml}
-        <div class="card-time">${timeText}</div>
+        <div class="card-time">${periodText}</div>
         ${imagesHtml}
       `;
 
