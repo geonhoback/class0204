@@ -500,7 +500,7 @@
       <select id="typeSelect">
         <option value="task">수행평가</option>
         <option value="exam">지필고사</option>
-        <option value="event">행사</option>
+        <option value="event">학사일정</option>
         <option value="notice">공지사항</option>
       </select>
       <input type="text" id="titleInput" placeholder="제목 (예: 배구수행, 중간고사)">
@@ -903,7 +903,7 @@
       let typeText = '수행평가';
       let typeClass = '';
       if (evt.type === 'exam') { typeText = '지필고사'; typeClass = 'exam'; }
-      else if (evt.type === 'event') { typeText = '행사'; typeClass = 'event'; }
+      else if (evt.type === 'event') { typeText = '학사일정'; typeClass = 'event'; }
       else if (evt.type === 'notice') { typeText = '공지사항'; typeClass = 'notice'; }
 
       if (isPast) {
