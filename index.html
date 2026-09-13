@@ -74,7 +74,6 @@
       color: #2c3e50;
     }
 
-    /* 관리자 입력 폼 */
     .form-box {
       display: none;
       background: #f8f9fa;
@@ -87,7 +86,6 @@
     }
 
     .form-box.active { display: flex; }
-
     .form-row { display: flex; gap: 6px; }
 
     input, select, button {
@@ -123,7 +121,6 @@
       cursor: not-allowed;
     }
 
-    /* 달력 헤더 */
     .calendar-header {
       display: flex;
       justify-content: space-between;
@@ -161,7 +158,6 @@
     .weekdays-grid div:first-child { color: #e74c3c; }
     .weekdays-grid div:last-child { color: #3498db; }
 
-    /* 달력 그리드 */
     .days-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -169,7 +165,6 @@
       width: 100%;
     }
 
-    /* 칸 크기 고정 스타일 */
     .day-cell {
       height: 76px;
       max-height: 76px;
@@ -186,20 +181,9 @@
       position: relative;
     }
 
-    .day-cell:hover {
-      background: #f4f8fc;
-    }
-
-    .day-cell.empty {
-      border: none;
-      background: transparent;
-      cursor: default;
-    }
-
-    .day-cell.today {
-      border-color: var(--primary);
-      background-color: #f0f7ff;
-    }
+    .day-cell:hover { background: #f4f8fc; }
+    .day-cell.empty { border: none; background: transparent; cursor: default; }
+    .day-cell.today { border-color: var(--primary); background-color: #f0f7ff; }
 
     .day-number {
       font-size: 0.72rem;
@@ -210,7 +194,6 @@
       flex-shrink: 0;
     }
 
-    /* 일정 목록 컨테이너 (스크롤바 숨김 처리) */
     .event-container {
       display: flex;
       flex-direction: column;
@@ -220,11 +203,8 @@
       flex: 1;
       scrollbar-width: none;
     }
-    .event-container::-webkit-scrollbar {
-      display: none;
-    }
+    .event-container::-webkit-scrollbar { display: none; }
 
-    /* 컴팩트 뱃지 */
     .event-badge {
       font-size: 0.58rem;
       padding: 1px 3px;
@@ -260,7 +240,6 @@
     .legend-item { display: flex; align-items: center; gap: 4px; }
     .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
 
-    /* 모달 */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -369,7 +348,7 @@
     <button id="submitBtn" class="btn-primary" onclick="addSchedule()">GitHub에 등록하기</button>
   </div>
 
-  <!-- 캘린더 헤더 -->
+  <!-- 달력 네비게이션 -->
   <div class="calendar-header">
     <button class="nav-btn" onclick="prevMonth()">◀</button>
     <h2 id="monthYearDisplay"></h2>
@@ -394,7 +373,7 @@
   </div>
 </div>
 
-<!-- 상세 보기 모달 -->
+<!-- 상세 모달 -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal-content" onclick="event.stopPropagation()">
     <h3 id="modalDateTitle">상세 일정</h3>
@@ -418,14 +397,13 @@
   </div>
 </div>
 
-<!-- 사진 확대 모달 -->
 <div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox()">
   <img id="lightboxImg" class="lightbox-img" src="" alt="유인물 확대">
 </div>
 
 <script>
   // ==========================================
-  // GitHub 저장소 정보 (본인의 아이디와 저장소 이름으로 변경)
+  // [필수 점검] 본인의 실제 GitHub 계정명과 저장소 이름
   // ==========================================
   const GITHUB_USERNAME = "본인의_깃허브_아이디";
   const GITHUB_REPO = "본인의_저장소_이름";
@@ -433,18 +411,39 @@
 
   let schedules = [];
   let fileSha = "";
-  let adminToken = sessionStorage.getItem('gh_token') || '';
+  // 세션 스토리지에서 토큰 가져올 때 공백 자동 제거
+  let adminToken = (sessionStorage.getItem('gh_token') || '').trim();
   let currentUserRole = adminToken ? 'admin' : 'student';
 
   let currentDate = new Date();
   let selectedDateForModal = null;
 
+  // GitHub API 호출 공통 헤더 생성 함수 (보강됨)
+  function getGitHubHeaders() {
+    const headers = {
+      'Accept': 'application/vnd.github.v3+json'
+    };
+    if (adminToken) {
+      // 최신 표준인 Bearer 형식 및 공백 제거 적용
+      headers['Authorization'] = `Bearer ${adminToken.trim()}`;
+    }
+    return headers;
+  }
+
+  // 데이터 로드
   async function loadDataFromGitHub() {
     const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${DATA_FILE_PATH}?timestamp=${Date.now()}`;
     try {
-      const headers = adminToken ? { 'Authorization': `token ${adminToken}` } : {};
-      const res = await fetch(url, { headers });
-      if (!res.ok) throw new Error('데이터 로드 실패');
+      const res = await fetch(url, { headers: getGitHubHeaders() });
+      if (!res.ok) {
+        // 토큰 문제로 401 Unauthorized가 난 경우 세션 정리
+        if (res.status === 401 && adminToken) {
+          alert('토큰 인증에 실패했습니다(Bad credentials). 토큰을 다시 확인해 주세요.');
+          logoutAdmin();
+          return;
+        }
+        throw new Error(`데이터 로드 응답 실패: ${res.status}`);
+      }
 
       const data = await res.json();
       fileSha = data.sha;
@@ -452,11 +451,10 @@
       const decodedContent = decodeURIComponent(escape(atob(data.content)));
       schedules = JSON.parse(decodedContent);
       
-      // 데이터를 정상적으로 가져오면 캘린더를 새로 업데이트
       renderCalendar();
       if (selectedDateForModal) openModal(selectedDateForModal);
     } catch (e) {
-      console.warn("GitHub API 실패, Raw 주소로 폴백:", e);
+      console.warn("GitHub API 로드 실패, Raw 주소로 대체 시도:", e);
       const rawRes = await fetch(`https://raw.githubusercontent.com/${GITHUB_USERNAME}/${GITHUB_REPO}/main/${DATA_FILE_PATH}?t=${Date.now()}`);
       if (rawRes.ok) {
         schedules = await rawRes.json();
@@ -465,6 +463,7 @@
     }
   }
 
+  // GitHub 파일 커밋(업데이트)
   async function updateDataOnGitHub(newSchedules, commitMsg) {
     const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${DATA_FILE_PATH}`;
     const encodedContent = btoa(unescape(encodeURIComponent(JSON.stringify(newSchedules, null, 2))));
@@ -478,7 +477,7 @@
     const res = await fetch(url, {
       method: 'PUT',
       headers: {
-        'Authorization': `token ${adminToken}`,
+        ...getGitHubHeaders(),
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(body)
@@ -486,6 +485,9 @@
 
     if (!res.ok) {
       const err = await res.json();
+      if (err.message && err.message.includes('Bad credentials')) {
+        throw new Error('토큰 값이 올바르지 않거나 만료되었습니다. 새 토큰으로 다시 로그인해 주세요.');
+      }
       throw new Error(err.message || 'GitHub 커밋 실패');
     }
 
@@ -526,17 +528,23 @@
   }
 
   async function loginAdmin() {
-    const token = document.getElementById('adminTokenInput').value.trim();
+    const rawToken = document.getElementById('adminTokenInput').value;
+    const token = rawToken.trim(); // 앞뒤 공백 제거
+    
     if (!token) return alert('토큰을 입력해 주세요.');
+    if (!token.startsWith('ghp_')) {
+      if (!confirm('토큰이 보통 ghp_ 로 시작하는데, 그대로 진행할까요?')) return;
+    }
 
     adminToken = token;
-    currentUserRole = 'admin';
     sessionStorage.setItem('gh_token', token);
+    currentUserRole = 'admin';
     
     updateAuthUI();
     closeAuthModal();
+    
+    // 토큰의 유효성을 즉시 테스트
     await loadDataFromGitHub();
-    alert('GitHub 관리자 인증 완료');
   }
 
   function logoutAdmin() {
@@ -545,10 +553,8 @@
     sessionStorage.removeItem('gh_token');
     updateAuthUI();
     renderCalendar();
-    alert('학생 모드로 전환되었습니다.');
   }
 
-  // 달력 렌더링 함수
   function renderCalendar() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -593,15 +599,11 @@
         const badge = document.createElement('div');
         badge.className = `event-badge ${evt.type}`;
         const typePrefix = evt.type === 'exam' ? '[지]' : '[수]';
-        
-        // [수정 완료] 카메라 이모티콘(📷)을 완전히 제거하고 과목명만 표시
         badge.innerText = `${typePrefix} ${evt.title}`;
-        
         eventContainer.appendChild(badge);
       });
 
       dayCell.appendChild(eventContainer);
-
       dayCell.onclick = () => openModal(dateString);
       daysContainer.appendChild(dayCell);
     }
@@ -610,7 +612,6 @@
   function prevMonth() { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); }
   function nextMonth() { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); }
 
-  // 이미지 압축
   function resizeImage(file, maxWidth, callback) {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -634,7 +635,6 @@
     };
   }
 
-  // 일정 등록
   async function addSchedule() {
     if (currentUserRole !== 'admin') return alert('권한이 없습니다.');
 
@@ -681,7 +681,6 @@
     }
   }
 
-  // 일정 삭제
   async function deleteSchedule(id) {
     if (currentUserRole !== 'admin') return alert('삭제 권한이 없습니다.');
     if (!confirm('정말 삭제하시겠습니까?')) return;
@@ -700,7 +699,6 @@
     }
   }
 
-  // 모달 제어
   function openModal(dateString) {
     selectedDateForModal = dateString;
     const dayEvents = schedules.filter(s => s.date === dateString);
@@ -746,13 +744,9 @@
     document.getElementById('lightboxImg').src = '';
   }
 
-  // ========================================================
-  // [핵심 수정] 초기 구동 순서 보장
-  // 1. 달력 틀과 날짜 칸을 즉시 화면에 그립니다 (빈 화면 방지)
-  // 2. 깃허브에서 데이터를 비동기로 불러와 일정을 채웁니다.
-  // ========================================================
+  // 초기 렌더링 및 실행
   updateAuthUI();
-  renderCalendar();     // <- 이제 처음 들어와도 달력 격자가 즉시 표시됩니다!
+  renderCalendar();
   loadDataFromGitHub();
 </script>
 </body>
