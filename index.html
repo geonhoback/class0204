@@ -6,61 +6,71 @@
   <title>우리 반 학사 일정 & 프린트 캘린더</title>
   <style>
     :root {
-      --exam-color: #d93829;
-      --exam-bg: #feebe8;
-      --task-color: #1971c2;
-      --task-bg: #e7f5ff;
-      --past-color: #868e96;
-      --past-bg: #f1f3f5;
-      --primary: #4a90e2;
+      --primary-blue: #1971c2;
+      --task-badge-bg: #e7f5ff;
+      --task-badge-text: #1971c2;
+      --task-dot: #74c0fc;
+      --exam-badge-bg: #ffe3e3;
+      --exam-badge-text: #e03131;
+      --exam-dot: #ff8787;
+      --past-badge-bg: #f1f3f5;
+      --past-badge-text: #868e96;
+      --past-dot: #adb5bd;
+      --today-bg: #0f3d64;
+      --sunday-color: #e03131;
+      --border-color: #f1f3f5;
       --bg: #f8f9fa;
-      --card: #ffffff;
-      --border: #e9ecef;
-      --sunday: #e03131;
-      --saturday: #1971c2;
+      --card-bg: #ffffff;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", Roboto, sans-serif;
     }
 
     body {
       background-color: var(--bg);
-      color: #333;
-      padding: 12px;
+      color: #212529;
       display: flex;
       justify-content: center;
+      min-height: 100vh;
     }
 
-    .container {
+    .app-container {
       width: 100%;
-      max-width: 500px;
-      background: var(--card);
-      border-radius: 16px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-      padding: 16px;
+      max-width: 480px;
+      background: var(--card-bg);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      border-left: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
     }
 
+    /* 상단 앱 헤더 */
     .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-color);
     }
 
     .user-badge {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       padding: 4px 8px;
       border-radius: 12px;
-      font-weight: bold;
+      font-weight: 600;
+      background-color: #e9ecef;
+      color: #495057;
     }
-    .user-badge.student { background-color: #e9ecef; color: #495057; }
-    .user-badge.admin { background-color: #e3f2fd; color: #1976d2; }
+    .user-badge.admin {
+      background-color: #e3f2fd;
+      color: var(--primary-blue);
+    }
 
     .auth-btn {
       background: none;
@@ -71,48 +81,30 @@
       cursor: pointer;
     }
 
-    h1 {
-      font-size: 1.25rem;
-      text-align: center;
-      margin-bottom: 16px;
-      color: #212529;
-    }
-
+    /* 관리자 폼 */
     .form-box {
       display: none;
       background: #f8f9fa;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+      padding: 14px 16px;
       flex-direction: column;
       gap: 8px;
     }
-
     .form-box.active { display: flex; }
     .form-row { display: flex; gap: 6px; }
 
     input, select, textarea, button {
-      padding: 9px 10px;
+      padding: 8px 10px;
       font-size: 0.88rem;
       border: 1px solid #ced4da;
       border-radius: 6px;
       outline: none;
     }
-
-    input[type="text"], input[type="password"] { flex: 1; }
-    textarea { width: 100%; height: 60px; resize: none; }
-
-    .file-input-wrapper {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-size: 0.82rem;
-      color: #495057;
-    }
+    input[type="text"], input[type="password"], input[type="time"] { flex: 1; }
+    textarea { width: 100%; height: 50px; resize: none; }
 
     button.btn-primary {
-      background: var(--primary);
+      background: var(--primary-blue);
       color: white;
       border: none;
       font-weight: 600;
@@ -120,31 +112,32 @@
       border-radius: 6px;
       padding: 10px;
     }
-
     button.btn-primary:disabled { background: #a0c4f1; cursor: not-allowed; }
 
-    .calendar-header {
+    /* 캘린더 네비게이션 */
+    .calendar-nav {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
-      padding: 0 4px;
+      padding: 14px 16px 10px;
     }
-
-    .calendar-header h2 {
+    .calendar-nav h2 {
       font-size: 1.15rem;
       font-weight: 700;
-      color: #212529;
+    }
+    .nav-btn {
+      background: none;
+      border: none;
+      font-size: 1.1rem;
+      padding: 4px 8px;
+      cursor: pointer;
+      color: #495057;
     }
 
-    .nav-btn {
-      background: #eef2f7;
-      border: none;
-      border-radius: 6px;
-      padding: 6px 12px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      font-weight: bold;
+    /* 달력 그리드 */
+    .calendar-wrapper {
+      padding: 0 12px 16px;
+      border-bottom: 8px solid #f1f3f5;
     }
 
     .weekdays-grid {
@@ -152,129 +145,219 @@
       grid-template-columns: repeat(7, 1fr);
       text-align: center;
       font-weight: 600;
-      font-size: 0.8rem;
-      margin-bottom: 6px;
+      font-size: 0.78rem;
+      color: #868e96;
+      padding-bottom: 8px;
     }
-
-    .weekdays-grid div:first-child { color: var(--sunday); }
-    .weekdays-grid div:last-child { color: var(--saturday); }
+    .weekdays-grid div:first-child { color: var(--sunday-color); }
+    .weekdays-grid div:last-child { color: var(--primary-blue); }
 
     .days-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 4px;
-      width: 100%;
+      row-gap: 4px;
+      column-gap: 2px;
     }
 
-    /* 칸 크기 완벽 고정 (76px 유지) */
     .day-cell {
-      height: 76px;
-      max-height: 76px;
-      width: 100%;
-      box-sizing: border-box;
-      border: 1px solid var(--border);
+      height: 64px;
       border-radius: 8px;
-      padding: 3px;
-      background: #ffffff;
       display: flex;
       flex-direction: column;
+      align-items: center;
+      padding: 4px 2px;
       cursor: pointer;
-      overflow: hidden;
       position: relative;
+      border: 2px solid transparent;
+      transition: border-color 0.15s;
     }
 
-    .day-cell:hover { background: #f8f9fa; }
-    .day-cell.empty { border: none; background: transparent; cursor: default; }
-    .day-cell.today { border-color: var(--primary); background-color: #f0f7ff; }
+    .day-cell.other-month {
+      opacity: 0.28;
+    }
 
-    .day-number-row {
+    .day-cell.selected {
+      border-color: var(--primary-blue);
+    }
+
+    .day-number-wrap {
+      width: 28px;
+      height: 28px;
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
+      border-radius: 50%;
       margin-bottom: 2px;
-      line-height: 1;
-      flex-shrink: 0;
     }
 
     .day-number {
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: #495057;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #212529;
     }
 
-    /* 토요일, 일요일, 공휴일 텍스트 색상 */
-    .day-cell.saturday .day-number { color: var(--saturday); }
     .day-cell.sunday .day-number,
-    .day-cell.holiday .day-number { color: var(--sunday); }
+    .day-cell.holiday .day-number {
+      color: var(--sunday-color);
+    }
+
+    .day-cell.saturday .day-number {
+      color: var(--primary-blue);
+    }
+
+    /* 오늘 날짜: 짙은 남색 원 */
+    .day-cell.today .day-number-wrap {
+      background-color: var(--today-bg);
+    }
+    .day-cell.today .day-number {
+      color: #ffffff !important;
+    }
 
     .holiday-name {
-      font-size: 0.55rem;
-      color: var(--sunday);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 38px;
+      font-size: 0.58rem;
+      color: var(--sunday-color);
+      font-weight: 500;
+      line-height: 1;
+      margin-top: -2px;
+      margin-bottom: 2px;
     }
 
-    .event-container {
+    /* 하단 일정 도트 인디케이터 */
+    .dots-container {
+      display: flex;
+      gap: 3px;
+      align-items: center;
+      justify-content: center;
+      height: 6px;
+    }
+
+    .dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background-color: var(--task-dot);
+    }
+    .dot.exam { background-color: var(--exam-dot); }
+    .dot.past { background-color: var(--past-dot); }
+
+    /* 하단 상세 일정 뷰 */
+    .detail-section {
+      padding: 20px 16px 30px;
+      flex: 1;
+      background: #ffffff;
+    }
+
+    .selected-sub-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--primary-blue);
+      margin-bottom: 4px;
+    }
+
+    .selected-date-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #111;
+      margin-bottom: 16px;
+    }
+
+    .cards-container {
       display: flex;
       flex-direction: column;
-      gap: 2px;
-      overflow-y: auto;
-      overflow-x: hidden;
-      flex: 1;
-      scrollbar-width: none;
-    }
-    .event-container::-webkit-scrollbar { display: none; }
-
-    /* 과목명만 깔끔하게 표시하는 컴팩트 배지 */
-    .event-badge {
-      font-size: 0.62rem;
-      font-weight: 600;
-      padding: 2px 4px;
-      border-radius: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      line-height: 1.2;
-      display: block;
-      flex-shrink: 0;
-    }
-
-    /* 수행평가: 파란 계열 */
-    .event-badge.task {
-      background: var(--task-bg);
-      color: var(--task-color);
-      border-left: 3px solid var(--task-color);
-    }
-
-    /* 지필평가: 빨간 계열 */
-    .event-badge.exam {
-      background: var(--exam-bg);
-      color: var(--exam-color);
-      border-left: 3px solid var(--exam-color);
-    }
-
-    /* 지난 일정: 회색 */
-    .event-badge.past {
-      background: var(--past-bg) !important;
-      color: var(--past-color) !important;
-      border-left-color: var(--past-color) !important;
-      text-decoration: line-through;
-    }
-
-    .legend {
-      display: flex;
-      justify-content: flex-end;
       gap: 12px;
-      margin-top: 14px;
-      font-size: 0.75rem;
     }
 
-    .legend-item { display: flex; align-items: center; gap: 4px; }
-    .legend-dot { width: 9px; height: 9px; border-radius: 50%; }
+    .empty-state {
+      text-align: center;
+      padding: 36px 0;
+      color: #adb5bd;
+      font-size: 0.9rem;
+    }
 
-    /* 상세 팝업 모달 */
+    /* 상세 카드 스타일 */
+    .event-card {
+      border: 1px solid #edf2f7;
+      border-radius: 16px;
+      padding: 16px;
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+      position: relative;
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .type-pill {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: var(--task-badge-bg);
+      color: var(--task-badge-text);
+    }
+    .type-pill.exam {
+      background: var(--exam-badge-bg);
+      color: var(--exam-badge-text);
+    }
+    .type-pill.past {
+      background: var(--past-badge-bg);
+      color: var(--past-badge-text);
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #111;
+      margin-bottom: 4px;
+    }
+
+    .card-desc {
+      font-size: 0.88rem;
+      color: #495057;
+      margin-bottom: 8px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+
+    .card-time {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.78rem;
+      color: #868e96;
+      font-weight: 500;
+    }
+
+    .card-images-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .card-thumb {
+      width: 100%;
+      height: 75px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+      cursor: zoom-in;
+    }
+
+    .del-btn {
+      background: none;
+      border: none;
+      color: #adb5bd;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .del-btn:hover { color: #e03131; }
+
+    /* 관리자 인증 모달 */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -286,89 +369,17 @@
       padding: 16px;
       z-index: 100;
     }
-
     .modal-overlay.active { display: flex; }
 
-    .modal-content {
+    .modal-box {
       background: white;
       width: 100%;
-      max-width: 420px;
+      max-width: 360px;
       border-radius: 12px;
       padding: 18px;
-      max-height: 85vh;
-      overflow-y: auto;
     }
 
-    .modal-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin: 12px 0;
-    }
-
-    .modal-item {
-      padding: 12px;
-      background: #f8f9fa;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-
-    .modal-item.past {
-      opacity: 0.85;
-      background: #f1f3f5;
-    }
-
-    .modal-item-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-    }
-
-    .modal-item-title {
-      font-size: 0.95rem;
-      font-weight: bold;
-    }
-
-    .modal-item-desc {
-      font-size: 0.85rem;
-      color: #495057;
-      white-space: pre-wrap;
-      line-height: 1.4;
-      margin-top: 4px;
-      background: #ffffff;
-      padding: 8px;
-      border-radius: 6px;
-      border: 1px solid #dee2e6;
-    }
-
-    .images-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-      gap: 6px;
-      margin-top: 8px;
-    }
-
-    .print-img-thumb {
-      width: 100%;
-      height: 90px;
-      border-radius: 6px;
-      cursor: zoom-in;
-      object-fit: cover;
-      border: 1px solid #ced4da;
-    }
-
-    .delete-btn {
-      border: none;
-      background: none;
-      color: #adb5bd;
-      cursor: pointer;
-      font-weight: bold;
-      padding: 2px 6px;
-    }
-    .delete-btn:hover { color: var(--exam-color); }
-
+    /* 라이트박스 */
     .lightbox-overlay {
       display: none;
       position: fixed;
@@ -380,86 +391,69 @@
       z-index: 200;
       padding: 12px;
     }
-
     .lightbox-overlay.active { display: flex; }
     .lightbox-img { max-width: 95%; max-height: 90vh; border-radius: 8px; }
   </style>
 </head>
 <body>
 
-<div class="container">
+<div class="app-container">
+  <!-- 상단 앱 바 -->
   <div class="top-bar">
-    <span id="roleBadge" class="user-badge student">학생 모드</span>
+    <span id="roleBadge" class="user-badge">학생 모드</span>
     <button id="authBtn" class="auth-btn" onclick="openAuthModal()">관리자 로그인</button>
   </div>
 
-  <h1>🗓️ 2학년 일정 & 프린트 캘린더</h1>
-
-  <!-- 관리자 일정 등록 폼 -->
+  <!-- 관리자 전용 등록 폼 -->
   <div class="form-box" id="adminFormBox">
     <div class="form-row">
       <select id="typeSelect">
         <option value="task">수행평가</option>
         <option value="exam">지필고사</option>
       </select>
-      <input type="text" id="titleInput" placeholder="과목명 (예: 국어, 역사, 과학)">
+      <input type="text" id="titleInput" placeholder="과목명 (예: 체육, 역사)">
     </div>
     <div class="form-row">
       <input type="date" id="dateInput" style="flex:1;">
+      <input type="time" id="timeInput" value="22:00" style="width:110px;">
     </div>
-    <textarea id="descInput" placeholder="일정 세부 내용이나 수행 팁을 적어주세요."></textarea>
+    <textarea id="descInput" placeholder="세부 내용 (예: 배구, 야구 등)"></textarea>
     <div class="file-input-wrapper">
-      <span>📄 유인물 사진 (여러 장 선택 가능):</span>
+      <span style="font-size:0.75rem; color:#666;">유인물 사진 (여러 장 선택 가능):</span>
       <input type="file" id="imageInput" accept="image/*" multiple>
     </div>
     <button id="submitBtn" class="btn-primary" onclick="addSchedule()">공용 서버에 등록하기</button>
   </div>
 
-  <div class="calendar-header">
+  <!-- 캘린더 네비게이션 -->
+  <div class="calendar-nav">
     <button class="nav-btn" onclick="prevMonth()">◀</button>
-    <h2 id="monthYearDisplay"></h2>
+    <h2 id="calendarMonthTitle"></h2>
     <button class="nav-btn" onclick="nextMonth()">▶</button>
   </div>
 
-  <div class="weekdays-grid">
-    <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+  <!-- 캘린더 상단 그리드 -->
+  <div class="calendar-wrapper">
+    <div class="weekdays-grid">
+      <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+    </div>
+    <div class="days-grid" id="daysGrid"></div>
   </div>
 
-  <div class="days-grid" id="daysContainer"></div>
-
-  <div class="legend">
-    <div class="legend-item">
-      <span class="legend-dot" style="background: var(--task-color);"></span>
-      <span>수행평가</span>
-    </div>
-    <div class="legend-item">
-      <span class="legend-dot" style="background: var(--exam-color);"></span>
-      <span>지필고사</span>
-    </div>
-    <div class="legend-item">
-      <span class="legend-dot" style="background: var(--past-color);"></span>
-      <span>지난 일정</span>
-    </div>
-  </div>
-</div>
-
-<!-- 상세 내용 및 사진 모달 -->
-<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
-  <div class="modal-content" onclick="event.stopPropagation()">
-    <h3 id="modalDateTitle" style="font-size:1.05rem; margin-bottom:4px;">상세 일정</h3>
-    <ul class="modal-list" id="modalList"></ul>
-    <button class="btn-primary" style="width:100%;" onclick="closeModal()">닫기</button>
+  <!-- 하단 상세 일정 뷰 (스크린샷 일치) -->
+  <div class="detail-section">
+    <div class="selected-sub-title">선택한 날짜</div>
+    <div class="selected-date-title" id="selectedDateHeader">날짜를 선택하세요</div>
+    <div class="cards-container" id="cardsContainer"></div>
   </div>
 </div>
 
 <!-- 관리자 인증 모달 -->
 <div class="modal-overlay" id="authModalOverlay" onclick="closeAuthModal(event)">
-  <div class="modal-content" onclick="event.stopPropagation()">
-    <h3>🔒 관리자 로그인</h3>
-    <p style="font-size:0.85rem; color:#666; margin:8px 0 12px;">
-      회장/선생님 전용 비밀번호를 입력해 주세요.
-    </p>
-    <div style="display:flex; flex-direction:column; gap:10px;">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <h3 style="font-size:1rem; margin-bottom:8px;">🔒 관리자 로그인</h3>
+    <p style="font-size:0.8rem; color:#666; margin-bottom:12px;">비밀번호를 입력하세요.</p>
+    <div style="display:flex; flex-direction:column; gap:8px;">
       <input type="password" id="adminPasswordInput" placeholder="비밀번호 입력">
       <button class="btn-primary" onclick="loginAdmin()">로그인</button>
       <button class="auth-btn" style="padding:8px;" onclick="closeAuthModal()">취소</button>
@@ -467,25 +461,25 @@
   </div>
 </div>
 
+<!-- 사진 확대 라이트박스 -->
 <div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox()">
   <img id="lightboxImg" class="lightbox-img" src="" alt="유인물 확대">
 </div>
 
 <script>
   // ========================================================
-  // [설정 영역] 회장님의 키 값 완벽 연동
+  // 회장님의 서버 인증 키 정보
   // ========================================================
   const ADMIN_PASSWORD = "class2026"; 
   const JSONBIN_BIN_ID = "6aa647f0ac6210605ac70149".trim(); 
   const JSONBIN_API_KEY = "$2a$10$xrkguaqza138TZqYTrcKJepPpeA75Th/u/DrugaWVhnBMctq4OQU6".trim(); 
   const IMGBB_API_KEY = "9911adee55b2aedaa911ca508dc35711".trim(); 
 
-  // 대한민국 공휴일 데이터베이스 (2026년 기준 주요 공휴일 및 대체공휴일)
   const HOLIDAYS = {
     "2026-01-01": "신정",
-    "2026-02-16": "설날연휴",
+    "2026-02-16": "설날",
     "2026-02-17": "설날",
-    "2026-02-18": "설날연휴",
+    "2026-02-18": "설날",
     "2026-03-01": "삼일절",
     "2026-03-02": "대체공휴일",
     "2026-05-05": "어린이날",
@@ -494,20 +488,23 @@
     "2026-06-06": "현충일",
     "2026-08-15": "광복절",
     "2026-08-17": "대체공휴일",
-    "2026-09-24": "추석연휴",
+    "2026-09-24": "추석",
     "2026-09-25": "추석",
-    "2026-09-26": "추석연휴",
+    "2026-09-26": "추석",
     "2026-10-03": "개천절",
     "2026-10-05": "대체공휴일",
     "2026-10-09": "한글날",
     "2026-12-25": "크리스마스"
   };
 
+  const WEEKDAY_NAMES = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
+
   let schedules = [];
   let currentUserRole = sessionStorage.getItem('user_role') || 'student';
   let currentDate = new Date();
-  let selectedDateForModal = null;
+  let selectedDateString = "";
 
+  // 1. 서버 데이터 불러오기
   async function loadDataFromServer() {
     try {
       const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest?t=${Date.now()}`, {
@@ -518,12 +515,13 @@
       const data = await res.json();
       schedules = Array.isArray(data.record) ? data.record : [];
       renderCalendar();
-      if (selectedDateForModal) openModal(selectedDateForModal);
+      renderSelectedDateDetails();
     } catch (e) {
       console.error("서버 데이터 로드 실패:", e);
     }
   }
 
+  // 2. 서버 데이터 저장하기
   async function saveDataToServer(newSchedules) {
     try {
       const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
@@ -542,6 +540,7 @@
 
       schedules = newSchedules;
       renderCalendar();
+      renderSelectedDateDetails();
       return true;
     } catch (e) {
       console.error("서버 저장 오류:", e);
@@ -550,7 +549,7 @@
     }
   }
 
-  // 모바일 캔버스 최적화 리사이징
+  // 이미지 모바일 캔버스 압축
   function optimizeImage(file) {
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -562,64 +561,57 @@
           const maxWidth = 650;
           let width = img.width;
           let height = img.height;
-
           if (width > maxWidth) {
             height = Math.round((height * maxWidth) / width);
             width = maxWidth;
           }
-
           const canvas = document.createElement('canvas');
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
-
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
-          resolve(dataUrl.split(',')[1]);
+          resolve(canvas.toDataURL('image/jpeg', 0.6).split(',')[1]);
         };
       };
     });
   }
 
-  // ImgBB API로 이미지 업로드
+  // ImgBB 업로드
   async function uploadToImgBB(base64Data) {
     const formData = new FormData();
     formData.append("image", base64Data);
-
     const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
       method: "POST",
       body: formData
     });
-
     const resJson = await res.json();
-    if (!resJson.success) throw new Error("사진 업로드에 실패했습니다.");
+    if (!resJson.success) throw new Error("사진 업로드 실패");
     return resJson.data.display_url;
   }
 
-  // 일정 등록 (여러 장 사진 및 내용 입력 지원)
+  // 일정 추가
   async function addSchedule() {
-    if (currentUserRole !== 'admin') return alert('일정 등록 권한이 없습니다.');
+    if (currentUserRole !== 'admin') return alert('권한이 없습니다.');
 
     const type = document.getElementById('typeSelect').value;
     const title = document.getElementById('titleInput').value.trim();
     const date = document.getElementById('dateInput').value;
+    const time = document.getElementById('timeInput').value;
     const desc = document.getElementById('descInput').value.trim();
-    const imageFileInput = document.getElementById('imageInput');
-    const files = imageFileInput.files;
+    const files = document.getElementById('imageInput').files;
     const submitBtn = document.getElementById('submitBtn');
 
-    if (!title || !date) return alert('과목명과 날짜를 입력해 주세요!');
+    if (!title || !date) return alert('과목명과 날짜를 입력해 주세요.');
 
     submitBtn.disabled = true;
 
     try {
       const imageUrls = [];
-
       if (files && files.length > 0) {
         for (let i = 0; i < files.length; i++) {
-          submitBtn.innerText = `사진 최적화 및 업로드 중 (${i + 1}/${files.length})...`;
-          const optimizedBase64 = await optimizeImage(files[i]);
-          const url = await uploadToImgBB(optimizedBase64);
+          submitBtn.innerText = `사진 업로드 중 (${i + 1}/${files.length})...`;
+          const b64 = await optimizeImage(files[i]);
+          const url = await uploadToImgBB(b64);
           imageUrls.push(url);
         }
       }
@@ -630,53 +622,209 @@
         type: type,
         title: title,
         date: date,
+        time: time,
         description: desc,
         images: imageUrls
       };
 
-      // 기존 항목 정리(과거 Base64 찌꺼기 제거)
-      const cleanSchedules = schedules.map(item => {
-        if (item.imageData && item.imageData.startsWith('data:image')) {
-          return { ...item, imageData: null };
-        }
-        return item;
-      });
-
-      const updated = [...cleanSchedules, newItem];
-      const success = await saveDataToServer(updated);
-
-      if (success) {
+      const updated = [...schedules, newItem];
+      const ok = await saveDataToServer(updated);
+      if (ok) {
         document.getElementById('titleInput').value = '';
-        document.getElementById('dateInput').value = '';
         document.getElementById('descInput').value = '';
         document.getElementById('imageInput').value = '';
-        alert('일정과 유인물이 공용 서버에 안전하게 등록되었습니다!');
+        alert('성공적으로 등록되었습니다.');
       }
-    } catch (err) {
-      alert(`등록 실패: ${err.message}`);
+    } catch (e) {
+      alert(`등록 실패: ${e.message}`);
     } finally {
       submitBtn.disabled = false;
       submitBtn.innerText = "공용 서버에 등록하기";
     }
   }
 
+  // 일정 삭제
   async function deleteSchedule(id) {
-    if (currentUserRole !== 'admin') return alert('삭제 권한이 없습니다.');
-    if (!confirm('정말 삭제하시겠습니까?')) return;
+    if (currentUserRole !== 'admin') return;
+    if (!confirm('해당 일정을 삭제하시겠습니까?')) return;
 
     const updated = schedules.filter(s => s.id !== id);
-    const success = await saveDataToServer(updated);
+    const ok = await saveDataToServer(updated);
+    if (ok) alert('삭제되었습니다.');
+  }
 
-    if (success) {
-      alert('삭제 완료되었습니다.');
-      if (selectedDateForModal) {
-        const remaining = updated.filter(s => s.date === selectedDateForModal);
-        if (remaining.length === 0) closeModal();
-        else openModal(selectedDateForModal);
+  // 상단 달력 그리드 렌더링
+  function renderCalendar() {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
+    document.getElementById('calendarMonthTitle').innerText = `${year}년 ${month + 1}월`;
+
+    const daysGrid = document.getElementById('daysGrid');
+    daysGrid.innerHTML = '';
+
+    const firstDayIndex = new Date(year, month, 1).getDay();
+    const totalDays = new Date(year, month + 1, 0).getDate();
+    const prevMonthTotalDays = new Date(year, month, 0).getDate();
+
+    const todayObj = new Date();
+    const todayStr = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
+
+    if (!selectedDateString) selectedDateString = todayStr;
+
+    // 이전 달 잔여 날짜
+    for (let i = firstDayIndex - 1; i >= 0; i--) {
+      const d = prevMonthTotalDays - i;
+      const cell = document.createElement('div');
+      cell.className = 'day-cell other-month';
+      cell.innerHTML = `<div class="day-number-wrap"><span class="day-number">${d}</span></div>`;
+      daysGrid.appendChild(cell);
+    }
+
+    // 이번 달 날짜
+    for (let day = 1; day <= totalDays; day++) {
+      const dayCell = document.createElement('div');
+      dayCell.className = 'day-cell';
+
+      const dayOfWeek = (firstDayIndex + day - 1) % 7;
+      if (dayOfWeek === 0) dayCell.classList.add('sunday');
+      if (dayOfWeek === 6) dayCell.classList.add('saturday');
+
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+      if (dateStr === todayStr) dayCell.classList.add('today');
+      if (dateStr === selectedDateString) dayCell.classList.add('selected');
+
+      const holiday = HOLIDAYS[dateStr];
+      if (holiday) dayCell.classList.add('holiday');
+
+      let innerHtml = `
+        <div class="day-number-wrap">
+          <span class="day-number">${day}</span>
+        </div>
+      `;
+
+      if (holiday) {
+        innerHtml += `<span class="holiday-name">${holiday}</span>`;
       }
+
+      // 도트 인디케이터 구성
+      const dayEvents = schedules.filter(s => s.date === dateStr);
+      if (dayEvents.length > 0) {
+        innerHtml += `<div class="dots-container">`;
+        dayEvents.slice(0, 3).forEach(evt => {
+          let dotClass = evt.type === 'exam' ? 'exam' : '';
+          if (evt.date < todayStr) dotClass = 'past';
+          innerHtml += `<span class="dot ${dotClass}"></span>`;
+        });
+        innerHtml += `</div>`;
+      }
+
+      dayCell.innerHTML = innerHtml;
+      dayCell.onclick = () => selectDate(dateStr);
+      daysGrid.appendChild(dayCell);
+    }
+
+    // 다음 달 시작 날짜 채우기 (총 35칸 또는 42칸 맞춤)
+    const totalRendered = firstDayIndex + totalDays;
+    const remaining = (7 - (totalRendered % 7)) % 7;
+    for (let j = 1; j <= remaining; j++) {
+      const cell = document.createElement('div');
+      cell.className = 'day-cell other-month';
+      cell.innerHTML = `<div class="day-number-wrap"><span class="day-number">${j}</span></div>`;
+      daysGrid.appendChild(cell);
     }
   }
 
+  function prevMonth() {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    renderCalendar();
+  }
+  function nextMonth() {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    renderCalendar();
+  }
+
+  // 날짜 선택 시 하단 상세 리스트 갱신
+  function selectDate(dateStr) {
+    selectedDateString = dateStr;
+    document.getElementById('dateInput').value = dateStr;
+    renderCalendar();
+    renderSelectedDateDetails();
+  }
+
+  // 하단 상세 일정 렌더링 (스크린샷 카드 형태 일치)
+  function renderSelectedDateDetails() {
+    if (!selectedDateString) return;
+
+    const parts = selectedDateString.split('-');
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const d = parseInt(parts[2], 10);
+    const dayOfWeekIndex = new Date(y, m - 1, d).getDay();
+
+    const holiday = HOLIDAYS[selectedDateString] ? ` · ${HOLIDAYS[selectedDateString]}` : '';
+    document.getElementById('selectedDateHeader').innerText = `${m}월 ${d}일 ${WEEKDAY_NAMES[dayOfWeekIndex]}${holiday}`;
+
+    const container = document.getElementById('cardsContainer');
+    container.innerHTML = '';
+
+    const todayObj = new Date();
+    const todayStr = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
+
+    const dayEvents = schedules.filter(s => s.date === selectedDateString);
+
+    if (dayEvents.length === 0) {
+      container.innerHTML = `<div class="empty-state">등록된 일정이 없습니다.</div>`;
+      return;
+    }
+
+    dayEvents.forEach(evt => {
+      const card = document.createElement('div');
+      card.className = 'event-card';
+
+      const isPast = evt.date < todayStr;
+      let typeText = evt.type === 'exam' ? '지필고사' : '수행평가';
+      let typeClass = evt.type === 'exam' ? 'exam' : '';
+      if (isPast) {
+        typeClass = 'past';
+        typeText += ' (마감)';
+      }
+
+      const timeText = evt.time ? `🕒 ${evt.time}` : '🕒 시간 미지정';
+      const descHtml = evt.description ? `<div class="card-desc">${evt.description}</div>` : '';
+
+      // 다중 이미지 그리드
+      let imagesHtml = '';
+      const imageList = evt.images || (evt.imageData ? [evt.imageData] : []);
+      if (imageList.length > 0) {
+        imagesHtml = `<div class="card-images-grid">`;
+        imageList.forEach(url => {
+          imagesHtml += `<img src="${url}" class="card-thumb" loading="lazy" onclick="openLightbox('${url}')">`;
+        });
+        imagesHtml += `</div>`;
+      }
+
+      const delBtn = (currentUserRole === 'admin') 
+        ? `<button class="del-btn" onclick="deleteSchedule(${evt.id})">삭제</button>` 
+        : '';
+
+      card.innerHTML = `
+        <div class="card-top">
+          <span class="type-pill ${typeClass}">${typeText}</span>
+          ${delBtn}
+        </div>
+        <div class="card-title">${evt.title}</div>
+        ${descHtml}
+        <div class="card-time">${timeText}</div>
+        ${imagesHtml}
+      `;
+
+      container.appendChild(card);
+    });
+  }
+
+  // 관리자 모달 및 인증
   function updateAuthUI() {
     const roleBadge = document.getElementById('roleBadge');
     const authBtn = document.getElementById('authBtn');
@@ -689,8 +837,8 @@
       authBtn.onclick = logoutAdmin;
       adminFormBox.classList.add('active');
     } else {
-      roleBadge.innerText = '👤 학생 모드';
-      roleBadge.className = 'user-badge student';
+      roleBadge.innerText = '학생 모드';
+      roleBadge.className = 'user-badge';
       authBtn.innerText = '관리자 로그인';
       authBtn.onclick = openAuthModal;
       adminFormBox.classList.remove('active');
@@ -708,14 +856,14 @@
   }
 
   function loginAdmin() {
-    const enteredPassword = document.getElementById('adminPasswordInput').value.trim();
-    if (enteredPassword === ADMIN_PASSWORD) {
+    const pwd = document.getElementById('adminPasswordInput').value.trim();
+    if (pwd === ADMIN_PASSWORD) {
       currentUserRole = 'admin';
       sessionStorage.setItem('user_role', 'admin');
       updateAuthUI();
       closeAuthModal();
-      renderCalendar();
-      alert('관리자(회장)로 로그인되었습니다.');
+      renderSelectedDateDetails();
+      alert('관리자로 로그인되었습니다.');
     } else {
       alert('비밀번호가 일치하지 않습니다.');
     }
@@ -725,158 +873,8 @@
     currentUserRole = 'student';
     sessionStorage.removeItem('user_role');
     updateAuthUI();
-    renderCalendar();
+    renderSelectedDateDetails();
     alert('학생 모드로 전환되었습니다.');
-  }
-
-  // 달력 렌더링 (공휴일 + 지난 일정 회색 처리 + 과목명만 표시)
-  function renderCalendar() {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-
-    document.getElementById('monthYearDisplay').innerText = `${year}년 ${month + 1}월`;
-
-    const daysContainer = document.getElementById('daysContainer');
-    daysContainer.innerHTML = '';
-
-    const firstDayIndex = new Date(year, month, 1).getDay();
-    const totalDays = new Date(year, month + 1, 0).getDate();
-
-    // 시작 요일 맞춤용 빈 칸
-    for (let i = 0; i < firstDayIndex; i++) {
-      const emptyCell = document.createElement('div');
-      emptyCell.className = 'day-cell empty';
-      daysContainer.appendChild(emptyCell);
-    }
-
-    const todayStr = new Date().toISOString().split('T')[0];
-
-    for (let day = 1; day <= totalDays; day++) {
-      const dayCell = document.createElement('div');
-      dayCell.className = 'day-cell';
-
-      const dayOfWeek = (firstDayIndex + day - 1) % 7;
-      if (dayOfWeek === 0) dayCell.classList.add('sunday');
-      if (dayOfWeek === 6) dayCell.classList.add('saturday');
-
-      const formattedMonth = String(month + 1).padStart(2, '0');
-      const formattedDay = String(day).padStart(2, '0');
-      const dateString = `${year}-${formattedMonth}-${formattedDay}`;
-
-      if (dateString === todayStr) dayCell.classList.add('today');
-
-      // 공휴일 확인
-      const holidayName = HOLIDAYS[dateString];
-      if (holidayName) dayCell.classList.add('holiday');
-
-      // 날짜 숫자 행
-      const dayNumberRow = document.createElement('div');
-      dayNumberRow.className = 'day-number-row';
-
-      const dayNumber = document.createElement('span');
-      dayNumber.className = 'day-number';
-      dayNumber.innerText = day;
-      dayNumberRow.appendChild(dayNumber);
-
-      if (holidayName) {
-        const holidayBadge = document.createElement('span');
-        holidayBadge.className = 'holiday-name';
-        holidayBadge.innerText = holidayName;
-        dayNumberRow.appendChild(holidayBadge);
-      }
-
-      dayCell.appendChild(dayNumberRow);
-
-      // 일정 컨테이너
-      const eventContainer = document.createElement('div');
-      eventContainer.className = 'event-container';
-
-      const dayEvents = schedules.filter(s => s.date === dateString);
-
-      dayEvents.forEach(evt => {
-        const badge = document.createElement('div');
-        badge.className = `event-badge ${evt.type}`;
-
-        // 오늘 이전 날짜는 회색 톤으로 자동 변경
-        if (evt.date < todayStr) {
-          badge.classList.add('past');
-        }
-
-        // [수], [지] 기호를 완전히 제거하고 과목명만 또렷하게 표시
-        badge.innerText = evt.title;
-        eventContainer.appendChild(badge);
-      });
-
-      dayCell.appendChild(eventContainer);
-      dayCell.onclick = () => openModal(dateString);
-      daysContainer.appendChild(dayCell);
-    }
-  }
-
-  function prevMonth() { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); }
-  function nextMonth() { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); }
-
-  // 상세 모달 (상세 메모와 여러 장의 사진 표시)
-  function openModal(dateString) {
-    selectedDateForModal = dateString;
-    const dayEvents = schedules.filter(s => s.date === dateString);
-    if (!dayEvents || dayEvents.length === 0) return;
-
-    const holiday = HOLIDAYS[dateString] ? ` (${HOLIDAYS[dateString]})` : '';
-    document.getElementById('modalDateTitle').innerText = `${dateString}${holiday} 세부 일정`;
-    const list = document.getElementById('modalList');
-    list.innerHTML = '';
-
-    const todayStr = new Date().toISOString().split('T')[0];
-
-    dayEvents.forEach(evt => {
-      const li = document.createElement('li');
-      li.className = 'modal-item';
-      const isPast = evt.date < todayStr;
-      if (isPast) li.classList.add('past');
-
-      const label = evt.type === 'exam' ? '지필고사' : '수행평가';
-      const pastBadge = isPast ? ' <span style="font-size:0.75rem; color:#868e96;">(마감)</span>' : '';
-
-      // 상세 메모 내용
-      const descHtml = evt.description 
-        ? `<div class="modal-item-desc">${evt.description}</div>` 
-        : '';
-
-      // 여러 장의 이미지 리스트 구성
-      let photosHtml = '';
-      const imageList = evt.images || (evt.imageData ? [evt.imageData] : []);
-
-      if (imageList.length > 0) {
-        photosHtml = '<div class="images-grid">';
-        imageList.forEach(url => {
-          photosHtml += `<img src="${url}" class="print-img-thumb" loading="lazy" alt="유인물" onclick="openLightbox('${url}')">`;
-        });
-        photosHtml += '</div>';
-      }
-
-      const delBtn = (currentUserRole === 'admin') 
-        ? `<button class="delete-btn" onclick="deleteSchedule(${evt.id})">삭제</button>` 
-        : '';
-
-      li.innerHTML = `
-        <div class="modal-item-header">
-          <span class="modal-item-title">${evt.title} <small style="font-weight:normal; color:#666;">[${label}]</small>${pastBadge}</span>
-          ${delBtn}
-        </div>
-        ${descHtml}
-        ${photosHtml}
-      `;
-      list.appendChild(li);
-    });
-
-    document.getElementById('modalOverlay').classList.add('active');
-  }
-
-  function closeModal(e) {
-    if (e && e.target !== document.getElementById('modalOverlay')) return;
-    document.getElementById('modalOverlay').classList.remove('active');
-    selectedDateForModal = null;
   }
 
   function openLightbox(src) {
@@ -889,9 +887,14 @@
     document.getElementById('lightboxImg').src = '';
   }
 
-  // 초기 구동
+  // 초기화 구동
+  const today = new Date();
+  selectedDateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  document.getElementById('dateInput').value = selectedDateString;
+
   updateAuthUI();
   renderCalendar();
+  renderSelectedDateDetails();
   loadDataFromServer();
 </script>
 </body>
