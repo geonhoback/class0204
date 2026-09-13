@@ -6,14 +6,18 @@
   <title>우리 반 학사 일정 & 프린트 캘린더</title>
   <style>
     :root {
-      --exam-color: #e74c3c;
-      --exam-bg: #fde8e8;
-      --task-color: #2b7bc6;
-      --task-bg: #e8f4fd;
+      --exam-color: #d93829;
+      --exam-bg: #feebe8;
+      --task-color: #1971c2;
+      --task-bg: #e7f5ff;
+      --past-color: #868e96;
+      --past-bg: #f1f3f5;
       --primary: #4a90e2;
-      --bg: #f5f7fb;
+      --bg: #f8f9fa;
       --card: #ffffff;
-      --border: #edf0f2;
+      --border: #e9ecef;
+      --sunday: #e03131;
+      --saturday: #1971c2;
     }
 
     * {
@@ -36,7 +40,7 @@
       max-width: 500px;
       background: var(--card);
       border-radius: 16px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
       padding: 16px;
     }
 
@@ -68,10 +72,10 @@
     }
 
     h1 {
-      font-size: 1.3rem;
+      font-size: 1.25rem;
       text-align: center;
       margin-bottom: 16px;
-      color: #2c3e50;
+      color: #212529;
     }
 
     .form-box {
@@ -88,22 +92,23 @@
     .form-box.active { display: flex; }
     .form-row { display: flex; gap: 6px; }
 
-    input, select, button {
+    input, select, textarea, button {
       padding: 9px 10px;
-      font-size: 0.9rem;
-      border: 1px solid #dcdfe6;
+      font-size: 0.88rem;
+      border: 1px solid #ced4da;
       border-radius: 6px;
       outline: none;
     }
 
     input[type="text"], input[type="password"] { flex: 1; }
+    textarea { width: 100%; height: 60px; resize: none; }
 
     .file-input-wrapper {
       display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.85rem;
-      color: #555;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.82rem;
+      color: #495057;
     }
 
     button.btn-primary {
@@ -129,7 +134,7 @@
     .calendar-header h2 {
       font-size: 1.15rem;
       font-weight: 700;
-      color: #2c3e50;
+      color: #212529;
     }
 
     .nav-btn {
@@ -148,12 +153,11 @@
       text-align: center;
       font-weight: 600;
       font-size: 0.8rem;
-      color: #7f8c8d;
       margin-bottom: 6px;
     }
 
-    .weekdays-grid div:first-child { color: #e74c3c; }
-    .weekdays-grid div:last-child { color: #3498db; }
+    .weekdays-grid div:first-child { color: var(--sunday); }
+    .weekdays-grid div:last-child { color: var(--saturday); }
 
     .days-grid {
       display: grid;
@@ -162,6 +166,7 @@
       width: 100%;
     }
 
+    /* 칸 크기 완벽 고정 (76px 유지) */
     .day-cell {
       height: 76px;
       max-height: 76px;
@@ -178,17 +183,37 @@
       position: relative;
     }
 
-    .day-cell:hover { background: #f4f8fc; }
+    .day-cell:hover { background: #f8f9fa; }
     .day-cell.empty { border: none; background: transparent; cursor: default; }
     .day-cell.today { border-color: var(--primary); background-color: #f0f7ff; }
+
+    .day-number-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
 
     .day-number {
       font-size: 0.72rem;
       font-weight: 700;
-      color: #555;
-      margin-bottom: 2px;
-      line-height: 1;
-      flex-shrink: 0;
+      color: #495057;
+    }
+
+    /* 토요일, 일요일, 공휴일 텍스트 색상 */
+    .day-cell.saturday .day-number { color: var(--saturday); }
+    .day-cell.sunday .day-number,
+    .day-cell.holiday .day-number { color: var(--sunday); }
+
+    .holiday-name {
+      font-size: 0.55rem;
+      color: var(--sunday);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 38px;
     }
 
     .event-container {
@@ -202,10 +227,12 @@
     }
     .event-container::-webkit-scrollbar { display: none; }
 
+    /* 과목명만 깔끔하게 표시하는 컴팩트 배지 */
     .event-badge {
-      font-size: 0.58rem;
-      padding: 1px 3px;
-      border-radius: 3px;
+      font-size: 0.62rem;
+      font-weight: 600;
+      padding: 2px 4px;
+      border-radius: 4px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -214,16 +241,26 @@
       flex-shrink: 0;
     }
 
+    /* 수행평가: 파란 계열 */
     .event-badge.task {
       background: var(--task-bg);
       color: var(--task-color);
-      border-left: 2.5px solid var(--task-color);
+      border-left: 3px solid var(--task-color);
     }
 
+    /* 지필평가: 빨간 계열 */
     .event-badge.exam {
       background: var(--exam-bg);
       color: var(--exam-color);
-      border-left: 2.5px solid var(--exam-color);
+      border-left: 3px solid var(--exam-color);
+    }
+
+    /* 지난 일정: 회색 */
+    .event-badge.past {
+      background: var(--past-bg) !important;
+      color: var(--past-color) !important;
+      border-left-color: var(--past-color) !important;
+      text-decoration: line-through;
     }
 
     .legend {
@@ -231,12 +268,13 @@
       justify-content: flex-end;
       gap: 12px;
       margin-top: 14px;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
     }
 
     .legend-item { display: flex; align-items: center; gap: 4px; }
-    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .legend-dot { width: 9px; height: 9px; border-radius: 50%; }
 
+    /* 상세 팝업 모달 */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -254,7 +292,7 @@
     .modal-content {
       background: white;
       width: 100%;
-      max-width: 400px;
+      max-width: 420px;
       border-radius: 12px;
       padding: 18px;
       max-height: 85vh;
@@ -270,33 +308,61 @@
     }
 
     .modal-item {
-      padding: 10px;
+      padding: 12px;
       background: #f8f9fa;
       border-radius: 8px;
       border: 1px solid var(--border);
+    }
+
+    .modal-item.past {
+      opacity: 0.85;
+      background: #f1f3f5;
     }
 
     .modal-item-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .modal-item-title {
+      font-size: 0.95rem;
+      font-weight: bold;
+    }
+
+    .modal-item-desc {
+      font-size: 0.85rem;
+      color: #495057;
+      white-space: pre-wrap;
+      line-height: 1.4;
+      margin-top: 4px;
+      background: #ffffff;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #dee2e6;
+    }
+
+    .images-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 6px;
+      margin-top: 8px;
     }
 
     .print-img-thumb {
       width: 100%;
-      max-height: 200px;
+      height: 90px;
       border-radius: 6px;
-      margin-top: 8px;
       cursor: zoom-in;
-      display: block;
-      object-fit: contain;
-      background: #eee;
+      object-fit: cover;
+      border: 1px solid #ced4da;
     }
 
     .delete-btn {
       border: none;
       background: none;
-      color: #aaa;
+      color: #adb5bd;
       cursor: pointer;
       font-weight: bold;
       padding: 2px 6px;
@@ -329,20 +395,22 @@
 
   <h1>🗓️ 2학년 일정 & 프린트 캘린더</h1>
 
+  <!-- 관리자 일정 등록 폼 -->
   <div class="form-box" id="adminFormBox">
     <div class="form-row">
       <select id="typeSelect">
-        <option value="task">수행</option>
-        <option value="exam">지필</option>
+        <option value="task">수행평가</option>
+        <option value="exam">지필고사</option>
       </select>
       <input type="text" id="titleInput" placeholder="과목명 (예: 국어, 역사, 과학)">
     </div>
     <div class="form-row">
       <input type="date" id="dateInput" style="flex:1;">
     </div>
+    <textarea id="descInput" placeholder="일정 세부 내용이나 수행 팁을 적어주세요."></textarea>
     <div class="file-input-wrapper">
-      <span>📄 유인물:</span>
-      <input type="file" id="imageInput" accept="image/*">
+      <span>📄 유인물 사진 (여러 장 선택 가능):</span>
+      <input type="file" id="imageInput" accept="image/*" multiple>
     </div>
     <button id="submitBtn" class="btn-primary" onclick="addSchedule()">공용 서버에 등록하기</button>
   </div>
@@ -362,23 +430,29 @@
   <div class="legend">
     <div class="legend-item">
       <span class="legend-dot" style="background: var(--task-color);"></span>
-      <span>[수] 수행평가</span>
+      <span>수행평가</span>
     </div>
     <div class="legend-item">
       <span class="legend-dot" style="background: var(--exam-color);"></span>
-      <span>[지] 지필고사</span>
+      <span>지필고사</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-dot" style="background: var(--past-color);"></span>
+      <span>지난 일정</span>
     </div>
   </div>
 </div>
 
+<!-- 상세 내용 및 사진 모달 -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal-content" onclick="event.stopPropagation()">
-    <h3 id="modalDateTitle">상세 일정</h3>
+    <h3 id="modalDateTitle" style="font-size:1.05rem; margin-bottom:4px;">상세 일정</h3>
     <ul class="modal-list" id="modalList"></ul>
     <button class="btn-primary" style="width:100%;" onclick="closeModal()">닫기</button>
   </div>
 </div>
 
+<!-- 관리자 인증 모달 -->
 <div class="modal-overlay" id="authModalOverlay" onclick="closeAuthModal(event)">
   <div class="modal-content" onclick="event.stopPropagation()">
     <h3>🔒 관리자 로그인</h3>
@@ -398,10 +472,36 @@
 </div>
 
 <script>
+  // ========================================================
+  // [설정 영역] 회장님의 키 값 완벽 연동
+  // ========================================================
   const ADMIN_PASSWORD = "class2026"; 
   const JSONBIN_BIN_ID = "6aa647f0ac6210605ac70149".trim(); 
   const JSONBIN_API_KEY = "$2a$10$xrkguaqza138TZqYTrcKJepPpeA75Th/u/DrugaWVhnBMctq4OQU6".trim(); 
   const IMGBB_API_KEY = "9911adee55b2aedaa911ca508dc35711".trim(); 
+
+  // 대한민국 공휴일 데이터베이스 (2026년 기준 주요 공휴일 및 대체공휴일)
+  const HOLIDAYS = {
+    "2026-01-01": "신정",
+    "2026-02-16": "설날연휴",
+    "2026-02-17": "설날",
+    "2026-02-18": "설날연휴",
+    "2026-03-01": "삼일절",
+    "2026-03-02": "대체공휴일",
+    "2026-05-05": "어린이날",
+    "2026-05-24": "부처님오신날",
+    "2026-05-25": "대체공휴일",
+    "2026-06-06": "현충일",
+    "2026-08-15": "광복절",
+    "2026-08-17": "대체공휴일",
+    "2026-09-24": "추석연휴",
+    "2026-09-25": "추석",
+    "2026-09-26": "추석연휴",
+    "2026-10-03": "개천절",
+    "2026-10-05": "대체공휴일",
+    "2026-10-09": "한글날",
+    "2026-12-25": "크리스마스"
+  };
 
   let schedules = [];
   let currentUserRole = sessionStorage.getItem('user_role') || 'student';
@@ -420,7 +520,7 @@
       renderCalendar();
       if (selectedDateForModal) openModal(selectedDateForModal);
     } catch (e) {
-      console.error("서버 데이터 불러오기 오류:", e);
+      console.error("서버 데이터 로드 실패:", e);
     }
   }
 
@@ -445,12 +545,12 @@
       return true;
     } catch (e) {
       console.error("서버 저장 오류:", e);
-      alert(`[서버 저장 실패 원인]\n${e.message}`);
+      alert(`[서버 저장 실패]\n${e.message}`);
       return false;
     }
   }
 
-  // 모바일 캔버스 최적화 (가로 650px, JPEG 60%)
+  // 모바일 캔버스 최적화 리사이징
   function optimizeImage(file) {
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -474,7 +574,6 @@
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
 
-          // Base64 순수 문자열 추출
           const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
           resolve(dataUrl.split(',')[1]);
         };
@@ -482,45 +581,47 @@
     });
   }
 
-  // ImgBB 업로드
+  // ImgBB API로 이미지 업로드
   async function uploadToImgBB(base64Data) {
     const formData = new FormData();
     formData.append("image", base64Data);
 
-    const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
       method: "POST",
       body: formData
     });
 
-    const resJson = await response.json();
-    if (!resJson.success) {
-      throw new Error(resJson.error ? resJson.error.message : "이미지 호스팅 업로드 실패");
-    }
+    const resJson = await res.json();
+    if (!resJson.success) throw new Error("사진 업로드에 실패했습니다.");
     return resJson.data.display_url;
   }
 
+  // 일정 등록 (여러 장 사진 및 내용 입력 지원)
   async function addSchedule() {
     if (currentUserRole !== 'admin') return alert('일정 등록 권한이 없습니다.');
 
     const type = document.getElementById('typeSelect').value;
     const title = document.getElementById('titleInput').value.trim();
     const date = document.getElementById('dateInput').value;
+    const desc = document.getElementById('descInput').value.trim();
     const imageFileInput = document.getElementById('imageInput');
-    const imageFile = imageFileInput.files[0];
+    const files = imageFileInput.files;
     const submitBtn = document.getElementById('submitBtn');
 
     if (!title || !date) return alert('과목명과 날짜를 입력해 주세요!');
 
     submitBtn.disabled = true;
-    submitBtn.innerText = "사진 최적화 중...";
 
     try {
-      let imageUrl = null;
+      const imageUrls = [];
 
-      if (imageFile) {
-        submitBtn.innerText = "클라우드 호스팅 업로드 중...";
-        const optimizedBase64 = await optimizeImage(imageFile);
-        imageUrl = await uploadToImgBB(optimizedBase64);
+      if (files && files.length > 0) {
+        for (let i = 0; i < files.length; i++) {
+          submitBtn.innerText = `사진 최적화 및 업로드 중 (${i + 1}/${files.length})...`;
+          const optimizedBase64 = await optimizeImage(files[i]);
+          const url = await uploadToImgBB(optimizedBase64);
+          imageUrls.push(url);
+        }
       }
 
       submitBtn.innerText = "서버 기록 중...";
@@ -529,10 +630,11 @@
         type: type,
         title: title,
         date: date,
-        imageData: imageUrl // 40자 내외의 가벼운 웹 URL만 저장됨
+        description: desc,
+        images: imageUrls
       };
 
-      // 기존 항목 중 예전 Base64 사진이 있다면 가볍게 정리하여 누적 용량 초과 방지
+      // 기존 항목 정리(과거 Base64 찌꺼기 제거)
       const cleanSchedules = schedules.map(item => {
         if (item.imageData && item.imageData.startsWith('data:image')) {
           return { ...item, imageData: null };
@@ -546,8 +648,9 @@
       if (success) {
         document.getElementById('titleInput').value = '';
         document.getElementById('dateInput').value = '';
+        document.getElementById('descInput').value = '';
         document.getElementById('imageInput').value = '';
-        alert('공용 서버에 등록되었습니다! 100장 이상의 사진도 용량 제한 없이 보관됩니다.');
+        alert('일정과 유인물이 공용 서버에 안전하게 등록되었습니다!');
       }
     } catch (err) {
       alert(`등록 실패: ${err.message}`);
@@ -626,6 +729,7 @@
     alert('학생 모드로 전환되었습니다.');
   }
 
+  // 달력 렌더링 (공휴일 + 지난 일정 회색 처리 + 과목명만 표시)
   function renderCalendar() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -638,6 +742,7 @@
     const firstDayIndex = new Date(year, month, 1).getDay();
     const totalDays = new Date(year, month + 1, 0).getDate();
 
+    // 시작 요일 맞춤용 빈 칸
     for (let i = 0; i < firstDayIndex; i++) {
       const emptyCell = document.createElement('div');
       emptyCell.className = 'day-cell empty';
@@ -650,17 +755,39 @@
       const dayCell = document.createElement('div');
       dayCell.className = 'day-cell';
 
+      const dayOfWeek = (firstDayIndex + day - 1) % 7;
+      if (dayOfWeek === 0) dayCell.classList.add('sunday');
+      if (dayOfWeek === 6) dayCell.classList.add('saturday');
+
       const formattedMonth = String(month + 1).padStart(2, '0');
       const formattedDay = String(day).padStart(2, '0');
       const dateString = `${year}-${formattedMonth}-${formattedDay}`;
 
       if (dateString === todayStr) dayCell.classList.add('today');
 
-      const dayNumber = document.createElement('div');
+      // 공휴일 확인
+      const holidayName = HOLIDAYS[dateString];
+      if (holidayName) dayCell.classList.add('holiday');
+
+      // 날짜 숫자 행
+      const dayNumberRow = document.createElement('div');
+      dayNumberRow.className = 'day-number-row';
+
+      const dayNumber = document.createElement('span');
       dayNumber.className = 'day-number';
       dayNumber.innerText = day;
-      dayCell.appendChild(dayNumber);
+      dayNumberRow.appendChild(dayNumber);
 
+      if (holidayName) {
+        const holidayBadge = document.createElement('span');
+        holidayBadge.className = 'holiday-name';
+        holidayBadge.innerText = holidayName;
+        dayNumberRow.appendChild(holidayBadge);
+      }
+
+      dayCell.appendChild(dayNumberRow);
+
+      // 일정 컨테이너
       const eventContainer = document.createElement('div');
       eventContainer.className = 'event-container';
 
@@ -669,8 +796,14 @@
       dayEvents.forEach(evt => {
         const badge = document.createElement('div');
         badge.className = `event-badge ${evt.type}`;
-        const typePrefix = evt.type === 'exam' ? '[지]' : '[수]';
-        badge.innerText = `${typePrefix} ${evt.title}`;
+
+        // 오늘 이전 날짜는 회색 톤으로 자동 변경
+        if (evt.date < todayStr) {
+          badge.classList.add('past');
+        }
+
+        // [수], [지] 기호를 완전히 제거하고 과목명만 또렷하게 표시
+        badge.innerText = evt.title;
         eventContainer.appendChild(badge);
       });
 
@@ -683,31 +816,56 @@
   function prevMonth() { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); }
   function nextMonth() { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); }
 
+  // 상세 모달 (상세 메모와 여러 장의 사진 표시)
   function openModal(dateString) {
     selectedDateForModal = dateString;
     const dayEvents = schedules.filter(s => s.date === dateString);
     if (!dayEvents || dayEvents.length === 0) return;
 
-    document.getElementById('modalDateTitle').innerText = `${dateString} 일정 및 유인물`;
+    const holiday = HOLIDAYS[dateString] ? ` (${HOLIDAYS[dateString]})` : '';
+    document.getElementById('modalDateTitle').innerText = `${dateString}${holiday} 세부 일정`;
     const list = document.getElementById('modalList');
     list.innerHTML = '';
+
+    const todayStr = new Date().toISOString().split('T')[0];
 
     dayEvents.forEach(evt => {
       const li = document.createElement('li');
       li.className = 'modal-item';
-      const label = evt.type === 'exam' ? '[지필고사]' : '[수행평가]';
-      
-      const photoHtml = evt.imageData 
-        ? `<img src="${evt.imageData}" class="print-img-thumb" loading="lazy" alt="유인물" onclick="openLightbox('${evt.imageData}')">` 
+      const isPast = evt.date < todayStr;
+      if (isPast) li.classList.add('past');
+
+      const label = evt.type === 'exam' ? '지필고사' : '수행평가';
+      const pastBadge = isPast ? ' <span style="font-size:0.75rem; color:#868e96;">(마감)</span>' : '';
+
+      // 상세 메모 내용
+      const descHtml = evt.description 
+        ? `<div class="modal-item-desc">${evt.description}</div>` 
         : '';
-      const delBtn = (currentUserRole === 'admin') ? `<button class="delete-btn" onclick="deleteSchedule(${evt.id})">삭제</button>` : '';
+
+      // 여러 장의 이미지 리스트 구성
+      let photosHtml = '';
+      const imageList = evt.images || (evt.imageData ? [evt.imageData] : []);
+
+      if (imageList.length > 0) {
+        photosHtml = '<div class="images-grid">';
+        imageList.forEach(url => {
+          photosHtml += `<img src="${url}" class="print-img-thumb" loading="lazy" alt="유인물" onclick="openLightbox('${url}')">`;
+        });
+        photosHtml += '</div>';
+      }
+
+      const delBtn = (currentUserRole === 'admin') 
+        ? `<button class="delete-btn" onclick="deleteSchedule(${evt.id})">삭제</button>` 
+        : '';
 
       li.innerHTML = `
         <div class="modal-item-header">
-          <span><strong>${label}</strong> ${evt.title}</span>
+          <span class="modal-item-title">${evt.title} <small style="font-weight:normal; color:#666;">[${label}]</small>${pastBadge}</span>
           ${delBtn}
         </div>
-        ${photoHtml}
+        ${descHtml}
+        ${photosHtml}
       `;
       list.appendChild(li);
     });
@@ -731,6 +889,7 @@
     document.getElementById('lightboxImg').src = '';
   }
 
+  // 초기 구동
   updateAuthUI();
   renderCalendar();
   loadDataFromServer();
