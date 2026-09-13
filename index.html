@@ -46,45 +46,55 @@
       border-right: 1px solid var(--border-color);
     }
 
+    /* 상단 앱 헤더 바 (뱃지 - 제목 - 버튼) */
     .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 16px;
+      padding: 12px 14px;
       background: #ffffff;
       border-bottom: 1px solid var(--border-color);
+      gap: 6px;
     }
 
     .user-badge {
-      font-size: 0.78rem;
-      padding: 4px 8px;
+      font-size: 0.72rem;
+      padding: 4px 7px;
       border-radius: 12px;
       font-weight: 600;
       background-color: #e9ecef;
       color: #495057;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
     .user-badge.admin {
       background-color: #e3f2fd;
       color: var(--primary-blue);
     }
 
+    /* 모드 뱃지와 로그인 버튼 사이에 위치하는 제목 */
+    .top-bar-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #111;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      margin: 0 4px;
+      letter-spacing: -0.3px;
+    }
+
     .auth-btn {
       background: none;
       border: 1px solid #ced4da;
-      padding: 4px 10px;
+      padding: 4px 8px;
       border-radius: 6px;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       cursor: pointer;
-    }
-
-    /* 최상단 메인 헤더 타이틀 */
-    .app-main-title {
-      font-size: 1.35rem;
-      font-weight: 800;
-      text-align: center;
-      padding: 16px 16px 8px;
-      color: #111;
-      letter-spacing: -0.5px;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .form-box {
@@ -425,14 +435,12 @@
 <body>
 
 <div class="app-container">
-  <!-- 상단 권한 바 -->
+  <!-- 상단 권한 바: 뱃지 - 제목 - 로그인버튼 -->
   <div class="top-bar">
     <span id="roleBadge" class="user-badge">학생 모드</span>
+    <span class="top-bar-title">2학년 4반 일정표</span>
     <button id="authBtn" class="auth-btn" onclick="openAuthModal()">관리자 로그인</button>
   </div>
-
-  <!-- 요청하신 메인 타이틀 헤더 -->
-  <h1 class="app-main-title">2학년 4반 일정표</h1>
 
   <!-- 관리자 일정 등록 폼 -->
   <div class="form-box" id="adminFormBox">
